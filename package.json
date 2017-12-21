@@ -1,0 +1,28 @@
+{
+  "name": "ut-smarthome-ble-manager",
+  "version": "1.0.0",
+  "description": "A BLE module for unitech smarthome.",
+  "main": "BleManager",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/keleibobo/ut-smarthome-ble-manager.git"
+  },
+  "bugs": {
+    "url": "https://github.com/keleibobo/ut-smarthome-ble-manager/issues"
+  },
+  "keywords": [
+    "react-native",
+    "android",
+    "ios",
+    "ble",
+    "bluetooth",
+    "low energy"
+  ],
+  "license": "Apache-2.0",
+  "author": "keleibobo (https://github.com/keleibobo/ut-smarthome-ble-manager)",
+  "homepage": "https://github.com/keleibobo/ut-smarthome-ble-manager#readme",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
