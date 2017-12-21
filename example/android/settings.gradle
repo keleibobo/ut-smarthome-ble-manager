@@ -1,3 +1,5 @@
 rootProject.name = 'example'
+include ':ut-smarthome-ble-manager'
+project(':ut-smarthome-ble-manager').projectDir = new File(rootProject.projectDir, '../node_modules/ut-smarthome-ble-manager/android')
 
 include ':app'
