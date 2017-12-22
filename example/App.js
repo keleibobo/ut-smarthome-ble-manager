@@ -34,14 +34,14 @@ export default class App extends Component {
             serviceUUID: '0000FF00-0000-1000-8000-00805F9B34FB'
         }
 
-        // BleManager.onHandleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
-        // BleManager.onHandleStopScan = this.handleStopScan.bind(this);
-        // BleManager.onHandleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
-        // BleManager.onHandleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
+        BleManager.onHandleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
+        BleManager.onHandleStopScan = this.handleStopScan.bind(this);
+        BleManager.onHandleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
+        BleManager.onHandleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
     }
 
     componentDidMount() {
-        // BleManager.open()
+        BleManager.open()
         if (Platform.OS === 'android' && Platform.Version >= 23) {
             PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
                 if (result) {
@@ -62,11 +62,11 @@ export default class App extends Component {
 
 
     componentWillUnmount() {
-        // BleManager.onHandleDiscoverPeripheral = () => {}
-        // BleManager.onHandleStopScan = () => {}
-        // BleManager.onHandleUpdateValueForCharacteristic = () => {}
-        // BleManager.onHandleDisconnectedPeripheral = () => {}
-        // BleManager.close()
+        BleManager.onHandleDiscoverPeripheral = () => {}
+        BleManager.onHandleStopScan = () => {}
+        BleManager.onHandleUpdateValueForCharacteristic = () => {}
+        BleManager.onHandleDisconnectedPeripheral = () => {}
+        BleManager.close()
     }
 
     handleDisconnectedPeripheral(data) {
@@ -78,15 +78,15 @@ export default class App extends Component {
             peripherals.set(peripheral.id, peripheral);
             this.setState({peripherals});
         }
-        console.log('Disconnected from ' + data.peripheral);
+        console.warn('Disconnected from ' + data.peripheral);
     }
 
     handleUpdateValueForCharacteristic(data) {
-        console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
+        console.warn('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
     }
 
     handleStopScan() {
-        console.log('Scan is stopped');
+        console.warn('Scan is stopped');
         this.setState({scanning: false});
     }
 

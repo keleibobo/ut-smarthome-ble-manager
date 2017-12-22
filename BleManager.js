@@ -36,7 +36,7 @@ class BleManager {
     }
 
     open() {
-        BleManager.start({showAlert: false, allowDuplicates: false});
+        this.start({showAlert: false, allowDuplicates: false});
         this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral);
         this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan);
         this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral);
