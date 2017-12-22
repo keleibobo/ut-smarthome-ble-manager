@@ -128,7 +128,7 @@ export default class App extends Component {
     handleDiscoverPeripheral(peripheral){
         var peripherals = this.state.peripherals;
         if (!peripherals.has(peripheral.id)){
-            console.log('Got ble peripheral', peripheral);
+            console.warn('Got ble peripheral', peripheral);
             peripherals.set(peripheral.id, peripheral);
             this.setState({ peripherals })
         }
@@ -226,11 +226,12 @@ export default class App extends Component {
                 <TouchableHighlight onPress={() => this.connectDevice(item) }>
         <View style={[styles.row, {backgroundColor: color}]}>
         <Text style={{fontSize: 12, textAlign: 'center', color: '#333333', padding: 10}}>名称：{item.name}</Text>
+            {Platform.OS === 'android'?
+                item.advertising.bytes != null ?<Text style={{fontSize: 12, textAlign: 'center', color: '#333333', padding: 10}}>广播包：{this.bytesToLogString(item.advertising.bytes)}</Text>
+                :null
+             : item.advertising.kCBAdvDataManufacturerData.bytes != null ?<Text style={{fontSize: 12, textAlign: 'center', color: '#333333', padding: 10}}>广播包：{this.bytesToLogString(item.advertising.bytes)}</Text>
+                    :null }
 
-            {
-                item.advertising != null ?<Text style={{fontSize: 12, textAlign: 'center', color: '#333333', padding: 10}}>广播包：{this.bytesToLogString(item.advertising.bytes)}</Text>
-                    :null
-            }
             <Text style={{fontSize: 8, textAlign: 'center', color: '#333333', padding: 10}}>mac地址：{item.id}</Text>
             </View>
             </TouchableHighlight> : null
@@ -249,7 +250,8 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#FFF',
         width: window.width,
-        height: window.height
+        height: window.height,
+        paddingTop: 10
     },
     scroll: {
         flex: 1,
