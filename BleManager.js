@@ -5,6 +5,8 @@ const bleManagerEmitter = new React.NativeEventEmitter(bleManager);
 
 class BleManager {
 
+    bleDeviceType = new Map()
+
     servicesUUIDsArray = [
         '0000FF00-0000-1000-8000-00805F9B34FB',
         '55540001-5554-0000-0055-4e4954454348'
@@ -26,13 +28,21 @@ class BleManager {
     }
 
     constructor() {
+        this.bleDeviceType.set(0x0110, '解锁器1A');
+        this.bleDeviceType.set(0x0111, '解锁器2A');
+        this.bleDeviceType.set(0x0120, '地线管理器');
+        this.bleDeviceType.set(0x0130, '钥匙管理器');
+        this.bleDeviceType.set(0x0140, '铁塔智能锁具');
+        this.bleDeviceType.set(0xA010, '灯控制面板');
+        this.bleDeviceType.set(0xA020, '家庭门锁');
+        this.bleDeviceType.set(0xA030, '炒菜机');
+        this.bleDeviceType.set(0xA040, '博佳空调控制器');
+
         this.isPeripheralConnected = this.isPeripheralConnected.bind(this);
         this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
         this.handleStopScan = this.handleStopScan.bind(this);
         this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
         this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
-
-
     }
 
     open() {
