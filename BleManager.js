@@ -5,25 +5,50 @@ const bleManagerEmitter = new React.NativeEventEmitter(bleManager);
 
 class BleManager {
 
+    connectedPeripherals = new Map()
+
     bleDeviceType = new Map()
 
-    servicesUUIDsArray = [
+    scanState = false
+
+    reconnectTimes = 3
+
+    currentReconnectTime = 0
+
+    serviceUUID = ''
+
+    defaultServicesUUIDs = [
         '0000FF00-0000-1000-8000-00805F9B34FB',
         '55540001-5554-0000-0055-4e4954454348'
     ]
 
+    scanServicesUUIDs = []
+
+    //test
+    // readCharacteristic = 'ff01'
+    // writeCharacteristic = 'ff02'
+
+    readCharacteristic = '55540001-5554-0001-0055-4E4954454348'
+
+    writeCharacteristic = '55540001-5554-0002-0055-4E4954454348'
+
     onHandleDiscoverPeripheral = (peripheral) => {
 
     }
+
     onHandleStopScan = () => {
 
     }
 
-    onHandleDisconnectedPeripheral = (data) => {
+    onHandleConnectStateChanged = (data) => {
 
     }
 
     onHandleUpdateValueForCharacteristic = (data) => {
+
+    }
+
+    onHandleMessage = (message) => {
 
     }
 
@@ -37,6 +62,8 @@ class BleManager {
         this.bleDeviceType.set(0xA020, '家庭门锁');
         this.bleDeviceType.set(0xA030, '炒菜机');
         this.bleDeviceType.set(0xA040, '博佳空调控制器');
+
+        this.connectedPeripherals = new Map()
 
         this.isPeripheralConnected = this.isPeripheralConnected.bind(this);
         this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -60,16 +87,26 @@ class BleManager {
         this.handlerUpdate.remove();
     }
 
+    getConnectedPeripherals(){
+        return this.connectedPeripherals;
+    }
+
     handleDiscoverPeripheral(peripheral) {
         this.onHandleDiscoverPeripheral(peripheral);
     }
 
     handleStopScan() {
+        this.scanState = false
         this.onHandleStopScan();
     }
 
     handleDisconnectedPeripheral(data) {
-        this.onHandleDisconnectedPeripheral(data)
+        data.id = data.peripheral
+        data.connected = false;
+        if (this.connectedPeripherals.has(data.id)) {
+            this.connectedPeripherals.delete(data.id);
+        }
+        this.onHandleConnectStateChanged(data);
     }
 
     handleUpdateValueForCharacteristic(data) {
@@ -110,6 +147,23 @@ class BleManager {
                     fulfill(peripheral);
                 }
             });
+        });
+    }
+
+    sendData (data, peripheral) {
+        return new Promise((fulfill, reject) => {
+            if (this.connectedPeripherals.has(peripheral.id)) {
+                bleManager.writeWithoutResponse(peripheral.id, this.serviceUUID, this.writeCharacteristic, data, 20, 30, (error) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        fulfill();
+                    }
+                });
+            }
+            else {
+                reject('未连接蓝牙设备');
+            }
         });
     }
 
@@ -158,6 +212,51 @@ class BleManager {
         });
     }
 
+    connectAndStartNotification(peripheral) {
+        if(this.connectedPeripherals.has(peripheral.id))
+        {
+            this.disconnect(peripheral.id)
+            return
+        }
+        if(this.scanState)
+        {
+            this.stopScan();
+        }
+        if (this.currentReconnectTime < this.reconnectTimes) {
+            this.connect(peripheral.id).then(() => {
+                setTimeout(() => {
+                    this.retrieveServices(peripheral.id).then((peripheralInfo) => {
+                        if (peripheralInfo.characteristics.length == 0) {
+                            this.onHandleMessage('未发现characteristic')
+                            return;
+                        }
+                        this.serviceUUID = peripheralInfo.services[0].uuid
+                        this.startNotification(peripheral.id, peripheralInfo.services[0].uuid, this.readCharacteristic).then(() => {
+                            peripheral.connected = true;
+                            this.connectedPeripherals.set(peripheral.id, peripheral);
+                            this.onHandleConnectStateChanged(peripheral);
+                            this.currentReconnectTime = 0;
+
+                        }).catch((err) => {
+                            this.onHandleMessage("通知蓝牙characteristics异常:" + err);
+                        });
+
+                    }).catch((err) => {
+                        this.onHandleMessage("检索蓝牙服务异常:" + err);
+                    })
+                }, 1000);
+
+            }).catch((err) => {
+                this.currentReconnectTime ++;
+                setTimeout(()=>{this.connectAndStartNotification(peripheral);},2000);
+            });
+        }
+        else {
+            this.currentReconnectTime = 0;
+        }
+
+    }
+
     disconnect(peripheralId) {
         return new Promise((fulfill, reject) => {
             bleManager.disconnect(peripheralId, (error) => {
@@ -169,6 +268,7 @@ class BleManager {
             });
         });
     }
+
 
     startNotification(peripheralId, serviceUUID, characteristicUUID) {
         return new Promise((fulfill, reject) => {
@@ -214,6 +314,7 @@ class BleManager {
     }
 
     scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions = {}) {
+        this.scanState = true;
         return new Promise((fulfill, reject) => {
             if (allowDuplicates == null) {
                 allowDuplicates = false;
@@ -235,10 +336,11 @@ class BleManager {
                 scanningOptions.scanMode = 1;
             }
             if (serviceUUIDs.length === 0) {
-                serviceUUIDs = this.servicesUUIDsArray;
+                serviceUUIDs = this.defaultServicesUUIDs;
             }
+            this.scanServicesUUIDs = serviceUUIDs;
 
-            bleManager.scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions, (error) => {
+            bleManager.scan(this.scanServicesUUIDs, seconds, allowDuplicates, scanningOptions, (error) => {
                 if (error) {
                     reject(error);
                 } else {

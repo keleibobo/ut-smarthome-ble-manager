@@ -38,7 +38,8 @@ export default class App extends Component {
         BleManager.onHandleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
         BleManager.onHandleStopScan = this.handleStopScan.bind(this);
         BleManager.onHandleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
-        BleManager.onHandleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
+        BleManager.onHandleConnectStateChanged = this.handleConnectStateChanged.bind(this);
+        BleManager.onHandleMessage = this.handleMessage.bind(this);
     }
 
     componentDidMount() {
@@ -66,20 +67,25 @@ export default class App extends Component {
         BleManager.onHandleDiscoverPeripheral = () => {}
         BleManager.onHandleStopScan = () => {}
         BleManager.onHandleUpdateValueForCharacteristic = () => {}
-        BleManager.onHandleDisconnectedPeripheral = () => {}
+        BleManager.onHandleConnectStateChanged = () => {}
+        BleManager.onHandleMessage = () => {}
         BleManager.close()
     }
 
-    handleDisconnectedPeripheral(data) {
-        console.warn('', data)
+    handleMessage(message) {
+        console.warn(message)
+    }
+
+    handleConnectStateChanged(peripheral) {
+        console.warn('', peripheral)
         let peripherals = this.state.peripherals;
-        let peripheral = peripherals.get(data.peripheral);
-        if (peripheral) {
-            peripheral.connected = false;
-            peripherals.set(peripheral.id, peripheral);
+        let cachePeripheral = peripherals.get(peripheral.id);
+        if (cachePeripheral) {
+            cachePeripheral.connected = peripheral.connected;
+            peripherals.set(peripheral.id, cachePeripheral);
             this.setState({peripherals});
         }
-        console.warn('Disconnected from ' + data.peripheral);
+        console.warn('handleConnectStateChanged from:', peripheral);
     }
 
     handleUpdateValueForCharacteristic(data) {
@@ -97,7 +103,7 @@ export default class App extends Component {
                 peripherals: new Map()
             })
             BleManager.scan([this.state.serviceUUID], 3, true).then((results) => {
-                console.log('Scanning...');
+                console.warn('Scanning...');
                 this.setState({scanning: true});
             });
         }
@@ -113,49 +119,9 @@ export default class App extends Component {
     }
 
     connectDevice(peripheral) {
-        if (peripheral) {
-            if (peripheral.connected) {
-                BleManager.disconnect(peripheral.id);
-            } else {
-                console.warn('', peripheral)
-                BleManager.connect(peripheral.id).then(() => {
-                    let peripherals = this.state.peripherals;
-                    let p = peripherals.get(peripheral.id);
-                    if (p) {
-                        p.connected = true;
-                        peripherals.set(peripheral.id, p);
-                        this.setState({peripherals});
-                    }
-                    console.warn('Connected to ' + peripheral.id);
-
-                    this.setTimeout(() => {
-                        BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
-                            console.warn('', peripheral);
-                            console.warn('', peripheralInfo);
-                            var service = this.state.serviceUUID;
-                            var bakeCharacteristic = '55540001-5554-0001-0055-4E4954454348';
-                            var crustCharacteristic = '55540001-5554-0002-0055-4E4954454348';
-
-                            this.setTimeout(() => {
-                                BleManager.startNotification(peripheral.id, service, bakeCharacteristic).then(() => {
-                                    console.warn('Started notification on ' + peripheral.id);
-                                    this.setTimeout(() => {
-                                        BleManager.write(peripheral.id, service, crustCharacteristic, [0]).then(() => {
-                                            console.warn('Writed NORMAL crust');
-                                        });
-
-                                    }, 500);
-                                }).catch((error) => {
-                                    console.warn('Notification error', error);
-                                });
-                            }, 200);
-                        });
-
-                    }, 900);
-                }).catch((error) => {
-                    console.warn('Connection error', error);
-                });
-            }
+        if(peripheral)
+        {
+             BleManager.connectAndStartNotification(peripheral)
         }
     }
 
