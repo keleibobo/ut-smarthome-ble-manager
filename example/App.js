@@ -25,6 +25,9 @@ const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 
 
 export default class App extends Component {
+
+    lastPeripheral = null
+
     constructor() {
         super()
 
@@ -82,6 +85,10 @@ export default class App extends Component {
         let cachePeripheral = peripherals.get(peripheral.id);
         if (cachePeripheral) {
             cachePeripheral.connected = peripheral.connected;
+            if(peripheral.connected)
+            {
+                this.lastPeripheral = peripheral;
+            }
             peripherals.set(peripheral.id, cachePeripheral);
             this.setState({peripherals});
         }
@@ -95,6 +102,14 @@ export default class App extends Component {
     handleStopScan() {
         console.warn('Scan is stopped');
         this.setState({scanning: false});
+    }
+
+    writeData() {
+        if(this.lastPeripheral)
+        {
+            let data = [0x11,0x12,0x13]
+            BleManager.sendData(data, this.lastPeripheral);
+        }
     }
 
     async startScan() {
@@ -143,6 +158,10 @@ export default class App extends Component {
                 <TouchableHighlight style={{marginTop: 40, margin: 20, padding: 20, backgroundColor: '#ccc'}}
                                     onPress={() => this.startScan()}>
                     <Text>搜索蓝牙设备 ({this.state.scanning ? 'on' : 'off'})</Text>
+                </TouchableHighlight>
+                <TouchableHighlight style={{ margin: 20, padding: 20, backgroundColor: '#ccc'}}
+                                    onPress={() => this.writeData()}>
+                    <Text>发送测试数据</Text>
                 </TouchableHighlight>
                 <ScrollView style={styles.scroll}>
                     {(list.length == 0) &&
