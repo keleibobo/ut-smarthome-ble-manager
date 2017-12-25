@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import Dimensions from 'Dimensions';
 import BleManager from 'ut-smarthome-ble-manager';
+import DataConver from './src/DataConvert';
 import TimerMixin from 'react-timer-mixin';
 import reactMixin from 'react-mixin';
 
@@ -111,18 +112,6 @@ export default class App extends Component {
         }
     }
 
-    bytesToLogString(arr) {
-        var str = "";
-        for (var i = 0; i < arr.length; i++) {
-            var tmp = arr[i].toString(16);
-            if (tmp.length == 1) {
-                tmp = "0" + tmp;
-            }
-            str += tmp.toUpperCase() + ' ';
-        }
-        return str;
-    }
-
     connectDevice(peripheral) {
         if (peripheral) {
             if (peripheral.connected) {
@@ -216,7 +205,7 @@ export default class App extends Component {
                                                         textAlign: 'center',
                                                         color: '#333333',
                                                         padding: 10
-                                                    }}>广播包：{this.bytesToLogString(item.advertising.bytes)}</Text>
+                                                    }}>广播包：{DataConver.bytesToLogString(item.advertising.bytes)}</Text>
                                                     : null
                                                 : item.advertising.kCBAdvDataManufacturerData.bytes != null ? <Text
                                                         style={{
@@ -224,7 +213,7 @@ export default class App extends Component {
                                                             textAlign: 'center',
                                                             color: '#333333',
                                                             padding: 10
-                                                        }}>广播包：{this.bytesToLogString(item.advertising.kCBAdvDataManufacturerData.bytes)}</Text>
+                                                        }}>广播包：{DataConver.bytesToLogString(item.advertising.kCBAdvDataManufacturerData.bytes)}</Text>
                                                     : null}
 
                                             <Text style={{
