@@ -159,7 +159,7 @@ export default class App extends Component {
                     onChangeText={(text) => this.setState({serviceUUID: text})}
                     underlineColorAndroid='transparent'
                 />
-                <TouchableHighlight style={{marginTop: 40, margin: 20, padding: 20, backgroundColor: '#ccc'}}
+                <TouchableHighlight style={{marginTop: 20, margin: 20, padding: 20, backgroundColor: '#ccc'}}
                                     onPress={() => this.startScan()}>
                     <Text>搜索蓝牙设备 ({this.state.scanning ? 'on' : 'off'})</Text>
                 </TouchableHighlight>
@@ -196,7 +196,7 @@ export default class App extends Component {
                                                         padding: 10
                                                     }}>广播包：{DataConver.bytesToLogString(item.advertising.bytes)}</Text>
                                                     : null
-                                                : item.advertising.kCBAdvDataManufacturerData.bytes != null ? <Text
+                                                : item.advertising.kCBAdvDataManufacturerData !=null && item.advertising.kCBAdvDataManufacturerData.bytes != null ? <Text
                                                         style={{
                                                             fontSize: 12,
                                                             textAlign: 'center',
@@ -248,6 +248,7 @@ const styles = StyleSheet.create({
         paddingLeft: 30,
         paddingRight: 10,
         paddingTop: 5,
+        height:40,
         paddingBottom: 5,
         borderColor: '#ddd',
     },
