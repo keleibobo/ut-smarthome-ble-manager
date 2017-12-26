@@ -81,7 +81,7 @@ export default class App extends Component {
     }
 
     handleBluetoothAdapterUpdateState(data) {
-        console.warn(data)
+        console.warn('', data)
     }
 
     handleConnectStateChanged(peripheral) {
