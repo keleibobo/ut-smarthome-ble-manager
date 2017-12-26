@@ -5,54 +5,74 @@ const bleManagerEmitter = new React.NativeEventEmitter(bleManager);
 
 class BleManager {
 
+    // 已经连接的外围设备
     connectedPeripherals = new Map()
 
+    // 外围设备类型编号
     bleDeviceType = new Map()
 
+    // 扫描状态
     scanState = false
 
+    // 重连次数
     reconnectTimes = 3
 
+    // 当前重连次数
     currentReconnectTime = 0
 
-    serviceUUID = ''
-
+    // 默认服务UUID
     defaultServicesUUIDs = [
         '0000FF00-0000-1000-8000-00805F9B34FB',
         '55540001-5554-0000-0055-4e4954454348'
     ]
 
+    // 扫描UUID服务数组
     scanServicesUUIDs = []
 
-    //test
-    // readCharacteristic = 'ff01'
-    // writeCharacteristic = 'ff02'
+    // 测试读特征值
+    readCharacteristicUUID = 'ff01'
 
-    readCharacteristic = '55540001-5554-0001-0055-4E4954454348'
+    // 测试写特征值
+    writeCharacteristicUUID = 'ff02'
 
-    writeCharacteristic = '55540001-5554-0002-0055-4E4954454348'
+    // 读特征值
+    // readCharacteristicUUID = '55540001-5554-0001-0055-4E4954454348'
+    //
+    // 写特征值
+    // writeCharacteristicUUID = '55540001-5554-0002-0055-4E4954454348'
 
+    // 发现外围设备事件
     onHandleDiscoverPeripheral = (peripheral) => {
 
     }
 
+    // 停止扫描事件
     onHandleStopScan = () => {
 
     }
 
+    // 连接状态改变事件
     onHandleConnectStateChanged = (data) => {
 
     }
 
+    // 读特征值数据上报事件
     onHandleUpdateValueForCharacteristic = (data) => {
 
     }
 
+    // 提示信息接收事件
     onHandleMessage = (message) => {
 
     }
 
+    // 蓝牙状态改变事件
+    onHandleBluetoothAdapterUpdateState = (data) => {
+
+    }
+
     constructor() {
+        this.bleDeviceType = new Map();
         this.bleDeviceType.set(0x0110, '解锁器1A');
         this.bleDeviceType.set(0x0111, '解锁器2A');
         this.bleDeviceType.set(0x0120, '地线管理器');
@@ -62,7 +82,13 @@ class BleManager {
         this.bleDeviceType.set(0xA020, '家庭门锁');
         this.bleDeviceType.set(0xA030, '炒菜机');
         this.bleDeviceType.set(0xA040, '博佳空调控制器');
+    }
 
+    /**
+     * 打开bleManager
+     */
+    open() {
+        this.start({showAlert: false, allowDuplicates: false});
         this.connectedPeripherals = new Map()
 
         this.isPeripheralConnected = this.isPeripheralConnected.bind(this);
@@ -70,50 +96,98 @@ class BleManager {
         this.handleStopScan = this.handleStopScan.bind(this);
         this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
         this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
-    }
+        this.handleBluetoothAdapterUpdateState = this.handleBluetoothAdapterUpdateState.bind(this);
 
-    open() {
-        this.start({showAlert: false, allowDuplicates: false});
         this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral);
         this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan);
         this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral);
         this.handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic);
+        this.handlerBluetoothAdapterUpdateState = bleManagerEmitter.addListener('BleManagerDidUpdateState', this.handleBluetoothAdapterUpdateState);
     }
 
+    /**
+     * 关闭bleManager
+     */
     close() {
+        bleManagerEmitter.removeAllListeners('BleManagerDiscoverPeripheral');
+        bleManagerEmitter.removeAllListeners('BleManagerStopScan');
+        bleManagerEmitter.removeAllListeners('BleManagerDisconnectPeripheral');
+        bleManagerEmitter.removeAllListeners('BleManagerDidUpdateValueForCharacteristic');
+        bleManagerEmitter.removeAllListeners('BleManagerDidUpdateState');
+
         this.handlerDiscover.remove();
         this.handlerStop.remove();
         this.handlerDisconnect.remove();
         this.handlerUpdate.remove();
+        this.handlerBluetoothAdapterUpdateState.remove();
     }
 
+    /**
+     * 设置自动重连次数
+     * @param {Number} times 重连次数
+     */
+    setReconnectTimes (times) {
+        this.reconnectTimes = times;
+    }
+
+    /**
+     * 获取已连接的外围设备
+     * @returns {Array} 已连接的外围设备.
+     */
     getConnectedPeripherals(){
         return this.connectedPeripherals;
     }
 
+    /**
+     * 蓝牙状态改变事件
+     */
+    handleBluetoothAdapterUpdateState(data) {
+        this.onHandleBluetoothAdapterUpdateState(data);
+    }
+
+    /**
+     * 发现外围设备
+     * @param {Object} peripheral 外围设备
+     */
     handleDiscoverPeripheral(peripheral) {
         this.onHandleDiscoverPeripheral(peripheral);
     }
 
+    /**
+     * 扫描停止事件
+     */
     handleStopScan() {
         this.scanState = false
         this.onHandleStopScan();
     }
 
+    /**
+     * 外围设备连接断开事件
+     * @param {Object} data 外围设备
+     */
     handleDisconnectedPeripheral(data) {
         data.id = data.peripheral
         data.connected = false;
         if (this.connectedPeripherals.has(data.id)) {
             this.connectedPeripherals.delete(data.id);
+            this.onHandleConnectStateChanged(data);
         }
-        this.onHandleConnectStateChanged(data);
     }
 
+    /**
+     * 读特征值数据上报
+     * @param {Object} data 外围设备
+     */
     handleUpdateValueForCharacteristic(data) {
         this.onHandleUpdateValueForCharacteristic(data);
     }
 
-
+    /**
+     * 读取指定特征值数据
+     * @param {String} peripheralId 外围设备id
+     * @param {String} serviceUUID 读特征值的serviceUUID
+     * @param {String} characteristicUUID 读取指定特征值UUID
+     */
     read(peripheralId, serviceUUID, characteristicUUID) {
         return new Promise((fulfill, reject) => {
             bleManager.read(peripheralId, serviceUUID, characteristicUUID, (error, data) => {
@@ -126,6 +200,10 @@ class BleManager {
         });
     }
 
+    /**
+     * 读取外围设备的信号强度
+     * @param {String} peripheralId 外围设备id
+     */
     readRSSI(peripheralId) {
         return new Promise((fulfill, reject) => {
             bleManager.readRSSI(peripheralId, (error, rssi) => {
@@ -138,6 +216,10 @@ class BleManager {
         });
     }
 
+    /**
+     * 读取外围设备服务
+     * @param {String} peripheralId 外围设备id
+     */
     retrieveServices(peripheralId) {
         return new Promise((fulfill, reject) => {
             bleManager.retrieveServices(peripheralId, (error, peripheral) => {
@@ -150,10 +232,16 @@ class BleManager {
         });
     }
 
+    /**
+     * 向外围设备发送数据
+     * @param {Array} Number Array
+     * @param {Object} peripheral 外围设备
+     */
     sendData (data, peripheral) {
         return new Promise((fulfill, reject) => {
             if (this.connectedPeripherals.has(peripheral.id)) {
-                bleManager.writeWithoutResponse(peripheral.id, this.serviceUUID, this.writeCharacteristic, data, 20, 30, (error) => {
+                let p = this.connectedPeripherals.get(peripheral.id)
+                bleManager.writeWithoutResponse(peripheral.id, p.services[0].uuid, this.writeCharacteristicUUID, data, 20, 30, (error) => {
                     if (error) {
                         reject(error);
                     } else {
@@ -167,6 +255,14 @@ class BleManager {
         });
     }
 
+    /**
+     * 向外围设备发送数据
+     * @param {String} peripheralId 外围设备id
+     * @param {String} serviceUUID 写特征值serviceUUID
+     * @param {String} characteristicUUID 写特征值UUID
+     * @param {Array} data Number Array
+     * @param {Number} maxByteSize 最大数据长度
+     */
     write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize) {
         if (maxByteSize == null) {
             maxByteSize = 20;
@@ -182,6 +278,15 @@ class BleManager {
         });
     }
 
+    /**
+     * 向外围设备发送数据
+     * @param {String} peripheralId 外围设备id
+     * @param {String} serviceUUID 写特征值serviceUUID
+     * @param {String} characteristicUUID 写特征值UUID
+     * @param {Array} data Number Array
+     * @param {Number} maxByteSize 最大数据长度
+     * @param {Number} queueSleepTime(ms) 队列发送时间间隔
+     */
     writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, queueSleepTime) {
         if (maxByteSize == null) {
             maxByteSize = 20;
@@ -200,6 +305,10 @@ class BleManager {
         });
     }
 
+    /**
+     * 与外围设备建立连接
+     * @param {String} peripheralId 外围设备id
+     */
     connect(peripheralId) {
         return new Promise((fulfill, reject) => {
             bleManager.connect(peripheralId, (error) => {
@@ -212,7 +321,11 @@ class BleManager {
         });
     }
 
-    connectAndStartNotification(peripheral) {
+    /**
+     * 与外围设备建立连接并注册通知
+     * @param {Object} peripheral 外围设备
+     */
+    connectAndRegisterNotify(peripheral) {
         if(this.connectedPeripherals.has(peripheral.id))
         {
             this.disconnect(peripheral.id)
@@ -230,9 +343,9 @@ class BleManager {
                             this.onHandleMessage('未发现characteristic')
                             return;
                         }
-                        this.serviceUUID = peripheralInfo.services[0].uuid
-                        this.startNotification(peripheral.id, peripheralInfo.services[0].uuid, this.readCharacteristic).then(() => {
+                        this.startNotification(peripheral.id, peripheralInfo.services[0].uuid, this.readCharacteristicUUID).then(() => {
                             peripheral.connected = true;
+                            peripheral.services = peripheralInfo.services
                             this.connectedPeripherals.set(peripheral.id, peripheral);
                             this.onHandleConnectStateChanged(peripheral);
                             this.currentReconnectTime = 0;
@@ -257,6 +370,10 @@ class BleManager {
 
     }
 
+    /**
+     * 与外围设备断开连接
+     * @param {String} peripheralId 外围设备id
+     */
     disconnect(peripheralId) {
         return new Promise((fulfill, reject) => {
             bleManager.disconnect(peripheralId, (error) => {
@@ -269,7 +386,12 @@ class BleManager {
         });
     }
 
-
+    /**
+     * 注册特征值通知
+     * @param {String} peripheralId 外围设备id
+     * @param {String} serviceUUID 特征值serviceUUID
+     * @param {String} characteristicUUID 特征值UUID
+     */
     startNotification(peripheralId, serviceUUID, characteristicUUID) {
         return new Promise((fulfill, reject) => {
             bleManager.startNotification(peripheralId, serviceUUID, characteristicUUID, (error) => {
@@ -282,6 +404,12 @@ class BleManager {
         });
     }
 
+    /**
+     * 注销特征值通知
+     * @param {String} peripheralId 外围设备id
+     * @param {String} serviceUUID 特征值serviceUUID
+     * @param {String} characteristicUUID 特征值UUID
+     */
     stopNotification(peripheralId, serviceUUID, characteristicUUID) {
         return new Promise((fulfill, reject) => {
             bleManager.stopNotification(peripheralId, serviceUUID, characteristicUUID, (error) => {
@@ -294,10 +422,16 @@ class BleManager {
         });
     }
 
+    /**
+     * 检查蓝牙状态
+     */
     checkState() {
         bleManager.checkState();
     }
 
+    /**
+     * 初始化BleManager
+     */
     start(options) {
         return new Promise((fulfill, reject) => {
             if (options == null) {
@@ -313,6 +447,13 @@ class BleManager {
         });
     }
 
+    /**
+     * 扫描外围设备
+     * @param {Array} serviceUUIDs 外围设备serviceUUIDs
+     * @param {Number} seconds(s) 扫描持续时间
+     * @param {Boolean} allowDuplicates 是否允许重复扫描设备
+     * @param {Object} scanningOptions 是否允许重复扫描设备
+     */
     scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions = {}) {
         this.scanState = true;
         return new Promise((fulfill, reject) => {
@@ -331,7 +472,7 @@ class BleManager {
                 scanningOptions.matchMode = 1
             }
 
-            //(ANDROID) Defaults to SCAN_MODE_LOW_POWER on android
+            //(ANDROID) Defaults to SCAN_MODE_BALANCED on android
             if (scanningOptions.scanMode == null) {
                 scanningOptions.scanMode = 1;
             }
@@ -350,6 +491,9 @@ class BleManager {
         });
     }
 
+    /**
+     * 停止扫描外围设备
+     */
     stopScan() {
         return new Promise((fulfill, reject) => {
             bleManager.stopScan((error) => {
@@ -362,6 +506,9 @@ class BleManager {
         });
     }
 
+    /**
+     * 打开系统蓝牙
+     */
     enableBluetooth() {
         return new Promise((fulfill, reject) => {
             bleManager.enableBluetooth((error) => {
@@ -374,6 +521,10 @@ class BleManager {
         });
     }
 
+    /**
+     * 获取已经连接的外围设备
+     * @param {Array} serviceUUIDs 外围设备serviceUUIDs
+     */
     getConnectedPeripherals(serviceUUIDs) {
         return new Promise((fulfill, reject) => {
             bleManager.getConnectedPeripherals(serviceUUIDs, (error, result) => {
@@ -390,6 +541,9 @@ class BleManager {
         });
     }
 
+    /**
+     * 获取已经扫描发现的外围设备
+     */
     getDiscoveredPeripherals() {
         return new Promise((fulfill, reject) => {
             bleManager.getDiscoveredPeripherals((error, result) => {
@@ -406,6 +560,10 @@ class BleManager {
         });
     }
 
+    /**
+     * 移除已经发现的外围设备
+     * @param {String} peripheralId 外围设备id
+     */
     removePeripheral(peripheralId) {
         return new Promise((fulfill, reject) => {
             bleManager.removePeripheral(peripheralId, (error) => {
@@ -418,6 +576,11 @@ class BleManager {
         });
     }
 
+    /**
+     * 判断外围设备是否已经建立连接
+     * @param {String} peripheralId 外围设备id
+     * @param {Array} serviceUUIDs 外围设备serviceUUIDs
+     */
     isPeripheralConnected(peripheralId, serviceUUIDs) {
         return this.getConnectedPeripherals(serviceUUIDs).then((result) => {
             if (result.find((p) => {

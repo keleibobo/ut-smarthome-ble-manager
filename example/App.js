@@ -43,6 +43,7 @@ export default class App extends Component {
         BleManager.onHandleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
         BleManager.onHandleConnectStateChanged = this.handleConnectStateChanged.bind(this);
         BleManager.onHandleMessage = this.handleMessage.bind(this);
+        BleManager.onHandleBluetoothAdapterUpdateState = this.handleBluetoothAdapterUpdateState.bind(this);
     }
 
     componentDidMount() {
@@ -79,8 +80,11 @@ export default class App extends Component {
         console.warn(message)
     }
 
+    handleBluetoothAdapterUpdateState(data) {
+        console.warn(data)
+    }
+
     handleConnectStateChanged(peripheral) {
-        console.warn('', peripheral)
         let peripherals = this.state.peripherals;
         let cachePeripheral = peripherals.get(peripheral.id);
         if (cachePeripheral) {
@@ -108,7 +112,7 @@ export default class App extends Component {
         if(this.lastPeripheral)
         {
             let data = [0x11,0x12,0x13]
-            BleManager.sendData(data, this.lastPeripheral);
+            BleManager.sendData(data, this.lastPeripheral.id);
         }
     }
 
@@ -136,7 +140,7 @@ export default class App extends Component {
     connectDevice(peripheral) {
         if(peripheral)
         {
-             BleManager.connectAndStartNotification(peripheral)
+             BleManager.connectAndRegisterNotify(peripheral)
         }
     }
 
