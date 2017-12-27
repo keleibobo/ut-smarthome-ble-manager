@@ -139,8 +139,12 @@ class BleManager {
      * 获取已连接的外围设备
      * @returns {Map} 已连接的外围设备.
      */
-    getConnectedPeripherals(){
-        return this.connectedPeripherals;
+    getConnectedPeripheralArray(){
+        let peripherals = new Array();
+        this.connectedPeripherals.forEach(function (value, key, map) {
+            peripherals.push(value);
+        });
+        return peripherals;
     }
 
     /**

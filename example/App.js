@@ -97,7 +97,7 @@ export default class App extends Component {
             this.setState({peripherals});
         }
         console.warn('handleConnectStateChanged from:', peripheral);
-        console.warn('',BleManager.getConnectedPeripherals())
+        console.warn('',BleManager.getConnectedPeripheralArray())
     }
 
     handleUpdateValueForCharacteristic(data) {

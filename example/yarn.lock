@@ -4411,9 +4411,9 @@ unpipe@1.0.0, unpipe@~1.0.0:
   version "1.0.0"
   resolved "http://r.cnpmjs.org/unpipe/download/unpipe-1.0.0.tgz#b2bf4ee8514aae6165b4817829d21b2ef49904ec"
 
-ut-smarthome-ble-manager@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.npmjs.org/ut-smarthome-ble-manager/-/ut-smarthome-ble-manager-1.0.7.tgz#ee72da5ab353295e6da19aba6251b39f62072c4c"
+ut-smarthome-ble-manager@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.npmjs.org/ut-smarthome-ble-manager/-/ut-smarthome-ble-manager-1.0.8.tgz#aa905fcb49238bbc9bec16473db8584e599462c1"
 
 util-deprecate@1.0.2, util-deprecate@~1.0.1:
   version "1.0.2"
