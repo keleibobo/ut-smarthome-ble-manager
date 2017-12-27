@@ -241,7 +241,7 @@ class BleManager {
         return new Promise((fulfill, reject) => {
             if (this.connectedPeripherals.has(peripheral.id)) {
                 let p = this.connectedPeripherals.get(peripheral.id)
-                bleManager.writeWithoutResponse(peripheral.id, p.services[0].uuid, this.writeCharacteristicUUID, data, 20, 30, (error) => {
+                bleManager.writeWithoutResponse(peripheral.id, p.serviceUUID, this.writeCharacteristicUUID, data, 20, 30, (error) => {
                     if (error) {
                         reject(error);
                     } else {
@@ -343,9 +343,15 @@ class BleManager {
                             this.onHandleMessage('未发现characteristic')
                             return;
                         }
-                        this.startNotification(peripheral.id, peripheralInfo.services[0].uuid, this.readCharacteristicUUID).then(() => {
+                        if(React.Platform.OS === 'ios')
+                        {
+                            peripheral.serviceUUID = peripheralInfo.services[0]
+                        }
+                        else {
+                            peripheral.serviceUUID = peripheralInfo.services[0].uuid
+                        }
+                        this.startNotification(peripheral.id, peripheral.serviceUUID, this.readCharacteristicUUID).then(() => {
                             peripheral.connected = true;
-                            peripheral.services = peripheralInfo.services
                             this.connectedPeripherals.set(peripheral.id, peripheral);
                             this.onHandleConnectStateChanged(peripheral);
                             this.currentReconnectTime = 0;
@@ -361,7 +367,7 @@ class BleManager {
 
             }).catch((err) => {
                 this.currentReconnectTime ++;
-                setTimeout(()=>{this.connectAndStartNotification(peripheral);},2000);
+                setTimeout(()=>{this.connectAndRegisterNotify(peripheral);},2000);
             });
         }
         else {
