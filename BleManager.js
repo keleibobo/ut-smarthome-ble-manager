@@ -46,6 +46,11 @@ class BleManager {
 
     }
 
+    // 发现外围设备返回设备类型
+    onHandleDiscoverPeripheralWithType = (peripheral, peripheralType) => {
+
+    }
+
     // 停止扫描事件
     onHandleStopScan = () => {
 
@@ -132,7 +137,7 @@ class BleManager {
 
     /**
      * 获取已连接的外围设备
-     * @returns {Array} 已连接的外围设备.
+     * @returns {Map} 已连接的外围设备.
      */
     getConnectedPeripherals(){
         return this.connectedPeripherals;
@@ -239,6 +244,10 @@ class BleManager {
      */
     sendData (data, peripheral) {
         return new Promise((fulfill, reject) => {
+            if(!peripheral)
+            {
+                reject('Peripheral is null');
+            }
             if (this.connectedPeripherals.has(peripheral.id)) {
                 let p = this.connectedPeripherals.get(peripheral.id)
                 bleManager.writeWithoutResponse(peripheral.id, p.serviceUUID, this.writeCharacteristicUUID, data, 20, 30, (error) => {
@@ -250,7 +259,7 @@ class BleManager {
                 });
             }
             else {
-                reject('未连接蓝牙设备');
+                reject('Peripheral not connected');
             }
         });
     }
@@ -340,7 +349,7 @@ class BleManager {
                 setTimeout(() => {
                     this.retrieveServices(peripheral.id).then((peripheralInfo) => {
                         if (peripheralInfo.characteristics.length == 0) {
-                            this.onHandleMessage('未发现characteristic')
+                            this.onHandleMessage('Characteristics not found')
                             return;
                         }
                         if(React.Platform.OS === 'ios')
@@ -357,11 +366,11 @@ class BleManager {
                             this.currentReconnectTime = 0;
 
                         }).catch((err) => {
-                            this.onHandleMessage("通知蓝牙characteristics异常:" + err);
+                            this.onHandleMessage("RegisterNotify characteristics exception:" + err);
                         });
 
                     }).catch((err) => {
-                        this.onHandleMessage("检索蓝牙服务异常:" + err);
+                        this.onHandleMessage("RetrieveServices exception:" + err);
                     })
                 }, 1000);
 

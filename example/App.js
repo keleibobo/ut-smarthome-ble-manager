@@ -97,6 +97,7 @@ export default class App extends Component {
             this.setState({peripherals});
         }
         console.warn('handleConnectStateChanged from:', peripheral);
+        console.warn('',BleManager.getConnectedPeripherals())
     }
 
     handleUpdateValueForCharacteristic(data) {
@@ -112,7 +113,11 @@ export default class App extends Component {
         if(this.lastPeripheral)
         {
             let data = [0x11,0x12,0x13]
-            BleManager.sendData(data, this.lastPeripheral.id);
+            BleManager.sendData(data, this.lastPeripheral).then(()=>{
+                console.warn('发送成功')
+            }).catch((err) => {
+                console.warn('', err)
+            });
         }
     }
 
