@@ -35,7 +35,7 @@ export default class App extends Component {
             scanning: false,
             peripherals: new Map(),
             // serviceUUID:'55540001-5554-0000-0055-4e4954454348',
-            serviceUUID: '0000FF00-0000-1000-8000-00805F9B34FB'
+            // serviceUUID: '0000FF00-0000-1000-8000-00805F9B34FB'
         }
 
         BleManager.onHandleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -126,7 +126,7 @@ export default class App extends Component {
             this.setState({
                 peripherals: new Map()
             })
-            BleManager.scan([this.state.serviceUUID], 3, true).then((results) => {
+            BleManager.scan([], 3, false).then((results) => {
                 console.warn('Scanning...');
                 this.setState({scanning: true});
             });
@@ -156,14 +156,14 @@ export default class App extends Component {
 
         return (
             <View style={styles.container}>
-                <TextInput
-                    style={styles.sceneName}
-                    value={this.state.serviceUUID}
-                    placeholder="serviceUUID"
-                    placeholderTextColor="#999"
-                    onChangeText={(text) => this.setState({serviceUUID: text})}
-                    underlineColorAndroid='transparent'
-                />
+                {/*<TextInput*/}
+                    {/*style={styles.sceneName}*/}
+                    {/*value={this.state.serviceUUID}*/}
+                    {/*placeholder="serviceUUID"*/}
+                    {/*placeholderTextColor="#999"*/}
+                    {/*onChangeText={(text) => this.setState({serviceUUID: text})}*/}
+                    {/*underlineColorAndroid='transparent'*/}
+                {/*/>*/}
                 <TouchableHighlight style={{marginTop: 20, margin: 20, padding: 20, backgroundColor: '#ccc'}}
                                     onPress={() => this.startScan()}>
                     <Text>搜索蓝牙设备 ({this.state.scanning ? 'on' : 'off'})</Text>
