@@ -4581,9 +4581,9 @@ user-home@^1.1.1:
   version "1.1.1"
   resolved "http://r.cnpmjs.org/user-home/download/user-home-1.1.1.tgz#2b5be23a32b63a7c9deb8d0f28d485724a3df190"
 
-ut-smarthome-ble-manager@^1.0.9:
-  version "1.0.9"
-  resolved "http://r.cnpmjs.org/ut-smarthome-ble-manager/download/ut-smarthome-ble-manager-1.0.9.tgz#58d7f89221b69c534261589fc6b61583c6050e86"
+ut-smarthome-ble-manager@^1.0.10:
+  version "1.0.10"
+  resolved "https://registry.npmjs.org/ut-smarthome-ble-manager/-/ut-smarthome-ble-manager-1.0.10.tgz#e40e54e091e31ebfd7a5c4c52d38335b9e0304ad"
 
 util-deprecate@1.0.2, util-deprecate@~1.0.1:
   version "1.0.2"
